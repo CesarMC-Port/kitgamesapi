@@ -1,0 +1,4 @@
+const games = [
+    "flapybird",
+    "searchtheamigurumi",
+]
