@@ -155,8 +155,18 @@ export async function addQRProduct(req: Request, res: Response) {
             const result:any = await cloudinary.uploader.upload(req.body?.image)
             await Product.create({
                 image: result.secure_url,
-                name: req.body?.productoAsociado
+                name: req.body?.productoAsociado,
+                publicId: result.public_id
             })
+        }else{
+            if (req.body?.image && req.body?.image.substring(0,5) !== 'https') {
+                await cloudinary.v2.uploader.destroy((product?.dataValues || product)?.publicId)
+                const result:any = await cloudinary.uploader.upload(req.body?.image)
+                await Product.update({
+                    image: result.secure_url,
+                    publicId: result.public_id
+                },{where: {id: (product?.dataValues || product)?.id}})
+            }
         }
 
         let QRproducts = await QRProduct.bulkCreate(objects);
@@ -182,6 +192,34 @@ export async function addQRProduct(req: Request, res: Response) {
 export async function editQRProduct(req: Request, res: Response) {
     try {
         //funcion para actualizar un QRProduct
+        interface Objects {
+            fecha: string;
+            idRelation: string;
+            productoAsociado?: string;
+            dispositivoAsociado?: string;
+            juegoAsociado?: string;
+            codeQR: string; 
+            status?: string;
+            lastUseDetected?: string;
+        }
+
+        let objects: Objects[] = []
+        let iterableObject = {...req.body};
+        let product = await Product.findOne({where: {name: req.body?.productoAsociado}})
+        if (req.body?.image && req.body?.image.substring(0,5) !== 'https') {
+            await cloudinary.v2.uploader.destroy((product?.dataValues || product)?.publicId)
+            const result:any = await cloudinary.uploader.upload(req.body?.image)
+            await Product.update({
+                image: result.secure_url,
+                publicId: result.public_id
+            },{where: {id: (product?.dataValues || product)?.id}})
+        }
+        delete iterableObject.image
+        for(let i:number = 0; i < req.body?.cantidad; i++){
+            objects = [...objects, {
+                ...iterableObject,
+            }]
+        }
 
         const data = await QRProduct.update({
                 ...req.body
@@ -209,14 +247,16 @@ export async function deleteQRProduct(req: Request, res: Response) {
     try {
 
         //funcion eliminadora de Lote de Producto 
-        const QRProductEncontrado = await QRProduct.findOne({
+        const QRProductEncontrado = await QRProduct.findAll({
             where: {
-                id: req.body.id,
+                idRelation: req.body.idRelation,
             }
         });
 
-        if (QRProductEncontrado) {
-            QRProductEncontrado.destroy();
+        if (QRProductEncontrado[0]) {
+            await QRProductEncontrado.forEach(async (el:any) => {
+                await el.destroy();
+            });
             res.status(OK).json({
                 message: 'Lote de Producto eliminado con éxito',
             })

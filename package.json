@@ -1,7 +1,7 @@
 {
-  "name": "geslord-api",
+  "name": "kitgamesapi",
   "version": "1.0.0",
-  "description": "Backend de Geslord",
+  "description": "Backend de kitgames",
   "main": "index.js",
   "scripts": {
     "dev": "tsc-watch --onSuccess \"node dist/index.js\"",
@@ -26,7 +26,6 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "morgan": "^1.10.0",
-    "multer": "^1.4.3",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.7.2",
     "passport": "^0.6.0",

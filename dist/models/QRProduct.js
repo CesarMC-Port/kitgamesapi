@@ -38,10 +38,6 @@ exports.default = (sequelize, type) => {
             allowNull: true,
             defaultValue: false
         },
-        // nameAsociado: {
-        //     type: type.TEXT,
-        //     allowNull: false
-        // },
         codeQR: {
             type: type.TEXT,
             allowNull: false,

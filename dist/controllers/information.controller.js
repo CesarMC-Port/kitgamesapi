@@ -101,7 +101,7 @@ exports.confirmarGoogle = confirmarGoogle;
 //-------------------------------------------- Funciones registros QRProduct ---------------------------------------------/
 //---------------------------------------------------------------------------------------------------------------------/
 async function addQRProduct(req, res) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     try {
         let objects = [];
         let code = (0, uuid_1.v4)();
@@ -120,8 +120,19 @@ async function addQRProduct(req, res) {
             const result = await cloudinary_1.default.uploader.upload((_c = req.body) === null || _c === void 0 ? void 0 : _c.image);
             await Product.create({
                 image: result.secure_url,
-                name: (_d = req.body) === null || _d === void 0 ? void 0 : _d.productoAsociado
+                name: (_d = req.body) === null || _d === void 0 ? void 0 : _d.productoAsociado,
+                publicId: result.public_id
             });
+        }
+        else {
+            if (((_e = req.body) === null || _e === void 0 ? void 0 : _e.image) && ((_f = req.body) === null || _f === void 0 ? void 0 : _f.image.substring(0, 5)) !== 'https') {
+                await cloudinary_1.default.v2.uploader.destroy((_g = ((product === null || product === void 0 ? void 0 : product.dataValues) || product)) === null || _g === void 0 ? void 0 : _g.publicId);
+                const result = await cloudinary_1.default.uploader.upload((_h = req.body) === null || _h === void 0 ? void 0 : _h.image);
+                await Product.update({
+                    image: result.secure_url,
+                    publicId: result.public_id
+                }, { where: { id: (_j = ((product === null || product === void 0 ? void 0 : product.dataValues) || product)) === null || _j === void 0 ? void 0 : _j.id } });
+            }
         }
         let QRproducts = await QRProduct.bulkCreate(objects);
         if (QRproducts) {
@@ -145,8 +156,25 @@ async function addQRProduct(req, res) {
 }
 exports.addQRProduct = addQRProduct;
 async function editQRProduct(req, res) {
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
-        //funcion para actualizar un QRProduct
+        let objects = [];
+        let iterableObject = { ...req.body };
+        let product = await Product.findOne({ where: { name: (_a = req.body) === null || _a === void 0 ? void 0 : _a.productoAsociado } });
+        if (((_b = req.body) === null || _b === void 0 ? void 0 : _b.image) && ((_c = req.body) === null || _c === void 0 ? void 0 : _c.image.substring(0, 5)) !== 'https') {
+            await cloudinary_1.default.v2.uploader.destroy((_d = ((product === null || product === void 0 ? void 0 : product.dataValues) || product)) === null || _d === void 0 ? void 0 : _d.publicId);
+            const result = await cloudinary_1.default.uploader.upload((_e = req.body) === null || _e === void 0 ? void 0 : _e.image);
+            await Product.update({
+                image: result.secure_url,
+                publicId: result.public_id
+            }, { where: { id: (_f = ((product === null || product === void 0 ? void 0 : product.dataValues) || product)) === null || _f === void 0 ? void 0 : _f.id } });
+        }
+        delete iterableObject.image;
+        for (let i = 0; i < ((_g = req.body) === null || _g === void 0 ? void 0 : _g.cantidad); i++) {
+            objects = [...objects, {
+                    ...iterableObject,
+                }];
+        }
         const data = await QRProduct.update({
             ...req.body
         }, {
@@ -171,13 +199,15 @@ exports.editQRProduct = editQRProduct;
 async function deleteQRProduct(req, res) {
     try {
         //funcion eliminadora de Lote de Producto 
-        const QRProductEncontrado = await QRProduct.findOne({
+        const QRProductEncontrado = await QRProduct.findAll({
             where: {
-                id: req.body.id,
+                idRelation: req.body.idRelation,
             }
         });
-        if (QRProductEncontrado) {
-            QRProductEncontrado.destroy();
+        if (QRProductEncontrado[0]) {
+            await QRProductEncontrado.forEach(async (el) => {
+                await el.destroy();
+            });
             res.status(http_request_1.OK).json({
                 message: 'Lote de Producto eliminado con éxito',
             });

@@ -10,12 +10,17 @@ export default (sequelize:any, type:any) => {
         image: {
             type: type.TEXT,
             allowNull: true,
-            defaultValue: null
+            defaultValue: ''
+        },
+        publicId: {
+            type: type.TEXT,
+            allowNull: true,
+            defaultValue: '' 
         },
         name: {
             type: type.TEXT,
             allowNull: true,
-            defaultValue: null
+            defaultValue: ''
         }
     }, {
 		initialAutoIncrement: 1000,

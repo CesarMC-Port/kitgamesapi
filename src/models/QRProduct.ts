@@ -37,10 +37,6 @@ export default (sequelize:any, type:any) => {
             allowNull: true,
             defaultValue: false
         },
-        // nameAsociado: {
-        //     type: type.TEXT,
-        //     allowNull: false
-        // },
         codeQR: {
             type: type.TEXT,
             allowNull: false,
